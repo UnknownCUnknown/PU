@@ -16,7 +16,6 @@ def login(stuid,pas):
         "Referer":"http://www.pocketuni.net/",
         "DNT" : "1",
         "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:36.0) Gecko/20100101 Firefox/36.0",
-        "Referer": "http://202.119.225.34/default_ysdx.aspx",
         "Content-Type": "application/x-www-form-urlencoded"
     }
     #处理Cookie
