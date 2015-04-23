@@ -1,0 +1,105 @@
+#!/usr/bin/python
+# coding=utf-8
+import urllib2
+import urllib
+import cookielib
+import re
+
+def login(stuid,pas):
+    print stuid
+    req_url = "http://www.pocketuni.net/"
+    request_url = "http://pocketuni.net/index.php?app=home&mod=Public&act=doLogin"
+    school = "南京邮电大学"
+    #构造头部
+    headers = {
+        "Host": "pocketuni.net",
+        "Referer":"http://www.pocketuni.net/",
+        "DNT" : "1",
+        "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:36.0) Gecko/20100101 Firefox/36.0",
+        "Referer": "http://202.119.225.34/default_ysdx.aspx",
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+    #处理Cookie
+    CookieJar = cookielib.CookieJar()
+    opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(CookieJar))
+    try:
+        res = opener.open(req_url)
+    except Exception:
+        return 1
+    #用opener打开页面获取登陆时要post的数据中__hash__一项的值
+    p = re.compile("<input type=\"hidden\" name=\"__hash__\" value=\"[^\"]*")
+    txt = res.read()
+    p = p.findall(txt)
+    try:
+        p = str(p[0])
+        s = p.split('value=\"')
+        _hash_ = s[1]
+    except Exception:
+        return 1
+    #print _hash_
+    #构造post数据
+    data = {
+        "school": school,
+        "sid": "592",
+        "number": stuid,
+        "password": pas,
+        "login": "登 录",
+        "__hash__": _hash_
+    }
+    post_data = urllib.urlencode(data)
+    #登陆
+    req = urllib2.Request(request_url,post_data,headers)
+    try:
+        opener.open(req)
+        res = opener.open("http://njupt.pocketuni.net/")
+    except Exception:
+        return 1
+    txt = res.read()
+    #如果打开njupt.pocketuni.net有登陆按钮，则表示并未成功登陆，获得失败
+    failed = "clogin"
+    if failed in txt:
+        return 1
+    #构造投票数据的头部
+    toupiaopost_headers = {
+        "Host" :"njupt.pocketuni.net",
+        "DNT" : "1",
+        "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:36.0) Gecko/20100101 Firefox/36.0",
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+    req_url = "http://njupt.pocketuni.net/index.php?app=event&mod=Front&act=vote"
+    #根据猜测，id应为活动编号，pid因为参赛团队编号 
+    toupiao_data = {
+        "id" : "",
+        "pid" : ""
+    }
+    try:
+        #要投票的两个活动
+        ids = ["85008","85031"]
+        #要投票的五个团队
+        pids = ["25139","25081","25145","25084","25465","25083","25445","25441","25433","25425"]
+        #投票要post的数据
+        for j in range(0,2):
+            toupiao_data["id"] = ids[j]
+            for i in range(0,6):
+                toupiao_data["pid"] = pids[j*5+i]
+                toupiaopostdata = urllib.urlencode(toupiao_data)
+                req1 = urllib2.Request(req_url,toupiaopostdata,toupiaopost_headers)
+                opener.open(req1)
+    #成功结束返回0，异常结束返回1
+    except Exception:
+        return 1
+    return 0
+
+#读入的文件
+f = open("xuehao16")
+t = f.readlines()
+#读入的文件每两行一组，一行为账号，一行为密码
+for i in range(0,len(t)/2):
+    #python readlines会读入末尾的换行符'\n'，在这里要处理掉
+    stuid = t[2*i][:-1]
+    pas = t[2*i+1][:-1]
+    x = login(stuid,pas)
+    if x == 0:
+        print "成功"
+    else :
+        print "失败"
