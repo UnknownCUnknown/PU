@@ -9,7 +9,8 @@ def login(stuid,pas):
     print stuid
     req_url = "http://www.pocketuni.net/"
     request_url = "http://pocketuni.net/index.php?app=home&mod=Public&act=doLogin"
-    school = "南京邮电大学"
+    #school = ""
+    school = "******" #学校中文名
     #构造头部
     headers = {
         "Host": "pocketuni.net",
@@ -39,7 +40,7 @@ def login(stuid,pas):
     #构造post数据
     data = {
         "school": school,
-        "sid": "592",
+        "sid": "",#学校id
         "number": stuid,
         "password": pas,
         "login": "登 录",
@@ -48,24 +49,26 @@ def login(stuid,pas):
     post_data = urllib.urlencode(data)
     #登陆
     req = urllib2.Request(request_url,post_data,headers)
+    sch = 'njupt' #学校简写，例如njupt
+    schurl = 'https://' + sch + '.pocketuni.net' #该校的url
     try:
         opener.open(req)
-        res = opener.open("http://njupt.pocketuni.net/")
+        res = opener.open(schurl)
     except Exception:
         return 1
     txt = res.read()
-    #如果打开njupt.pocketuni.net有登陆按钮，则表示并未成功登陆，获得失败
+    #如果打开该校的pu url有登陆按钮，则表示并未成功登陆，获得失败
     failed = "clogin"
     if failed in txt:
         return 1
     #构造投票数据的头部
     toupiaopost_headers = {
-        "Host" :"njupt.pocketuni.net",
+        "Host" :schurl,#该校的url
         "DNT" : "1",
         "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:36.0) Gecko/20100101 Firefox/36.0",
         "Content-Type": "application/x-www-form-urlencoded"
     }
-    req_url = "http://njupt.pocketuni.net/index.php?app=event&mod=Front&act=vote"
+    req_url = 'http://' + sch + '.pocketuni.net/index.php?app=event&mod=Front&act=vote'
     #根据猜测，id应为活动编号，pid因为参赛团队编号 
     toupiao_data = {
         "id" : "",
